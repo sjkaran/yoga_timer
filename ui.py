@@ -2,11 +2,14 @@ import customtkinter as ctk
 from tkinter import font
 import threading
 import time
-
+from voice_engine import voice_engine as ve
 
 class TimerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        #imported functions
+        self.vr = ve()
         
         # Configure dark theme
         ctk.set_appearance_mode("dark")
@@ -66,7 +69,7 @@ class TimerApp(ctk.CTk):
             fg_color="#00d4ff",
             hover_color="#00a8cc",
             text_color="#000000",
-            command=self.toggle_timer
+            command= self.toggle_timer
         )
         self.start_stop_btn.pack(side="left", expand=True, padx=(0, 5))
         
@@ -96,7 +99,25 @@ class TimerApp(ctk.CTk):
             command=self.reset_timer
         )
         self.reset_btn.pack(side="right", expand=True, padx=(5, 0))
-    
+
+    def voice_toggle(self):
+        self.voice_enabled = not self.voice_enabled
+        if self.voice_enabled:
+            self.voice_btn.configure(fg_color="#ffd900")
+            # Start a thread so the UI doesn't freeze while listening
+            threading.Thread(target=self.voice_listener_loop, daemon=True).start()
+        else:
+            self.voice_btn.configure(fg_color="#73737C")
+
+    def voice_listener_loop(self):
+        # This runs in the background
+        if self.vr.recognizer():
+            # Use .after() to safely talk back to the UI thread
+            self.after(0, self.toggle_timer)
+            if self.vr.recognizer(word="stop"):
+                self.after(0,self.toggle_timer)
+
+            
     def toggle_timer(self):
         """Start or stop the timer."""
         if not self.is_running:
@@ -138,16 +159,7 @@ class TimerApp(ctk.CTk):
         self.time_display.configure(text="00:00:00.00")
         self.start_stop_btn.configure(text="Start", fg_color="#00d4ff", hover_color="#00a8cc")
     
-    def voice_toggle(self):
-        """Toggle voice command mode on/off."""
-        self.voice_enabled = not self.voice_enabled
-        
-        if self.voice_enabled:
-            # Voice is ON
-            self.voice_btn.configure(fg_color="#ffd900", hover_color="#0be650")
-        else:
-            # Voice is OFF
-            self.voice_btn.configure(fg_color="#73737C", hover_color="#0be650")
+    
 
 
 def main():

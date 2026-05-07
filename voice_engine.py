@@ -5,42 +5,47 @@ from vosk import Model, KaldiRecognizer
 import win32com.client
 import pythoncom
 
-q = queue.Queue()
-pythoncom.CoUninitialize()
-vengine = win32com.client.Dispatch("SAPI.SpVoice")
-
-def callback(indata, frames, time, status):
-    q.put(bytes(indata))
-
-model_path = "model/vosk-model-small-en-in-0.4" #path to the vosk model.
-model = Model(model_path)
-recognizer = KaldiRecognizer(model, 16000)
-
-stream = sd.RawInputStream(
-    samplerate=16000,
-    blocksize=8000,
-    dtype='int16',
-    channels=1,
-    callback=callback
-)
-
-print("Listening for wake word...")
-
-with stream:
-    while True:
-        data = q.get()
-        if recognizer.AcceptWaveform(data):
-            result = json.loads(recognizer.Result())
-            text = result.get("text","")
-            print("Heard:",text)
-
-            if "servant" in text:
-                print("Activated!")
-                vengine.Speak("I am your Servant sir...")
-                break
 
 
 
+class voice_engine:
+    def __init__(self):
+        self.q = queue.Queue()
+        pythoncom.CoUninitialize()
+        self.vengine = win32com.client.Dispatch("SAPI.SpVoice")
+        self.modelpath = "model/vosk-model-small-en-in-0.4"
+        self.model = Model(self.modelpath)
+        
+
+    def callback(self, indata, frames, time, status):
+        self.q.put(bytes(indata))
+
+    def recognizer(self, word = "start"):
+        recognizer = KaldiRecognizer(self.model,16000)
+        stream = sd.RawInputStream(
+            samplerate=16000,
+            blocksize=8000,
+            dtype='int16',
+            channels=1,
+            callback=self.callback
+        )
+        with stream:
+            while True:
+                data = self.q.get()
+                if recognizer.AcceptWaveform(data):
+                    result = json.loads(recognizer.Result())
+                    text = result.get("text","")
+                    print("Heard:",text)
+
+                    if word in text:
+                        print(f"{word} detected - Activated!")
+                        self.vengine.Speak(f"I am {word}ing. ")
+                        return 1
 
 
-# the above code shows the mechanism of how wake word works (how the system detects wakewords and gets activated).
+
+    
+
+if __name__=="__main__":
+    ve = voice_engine()
+    ve.recognizer()
