@@ -116,6 +116,9 @@ class TimerApp(ctk.CTk):
             self.after(0, self.toggle_timer)
             if self.vr.recognizer(word="stop"):
                 self.after(0,self.toggle_timer)
+                if self.vr.recognizer(word="reset"):
+                    self.after(0,self.reset_timer)
+                
 
             
     def toggle_timer(self):
