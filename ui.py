@@ -100,24 +100,67 @@ class TimerApp(ctk.CTk):
         )
         self.reset_btn.pack(side="right", expand=True, padx=(5, 0))
 
+    
+
     def voice_toggle(self):
         self.voice_enabled = not self.voice_enabled
+        
         if self.voice_enabled:
+            # 1. UI Update
             self.voice_btn.configure(fg_color="#ffd900")
-            # Start a thread so the UI doesn't freeze while listening
-            threading.Thread(target=self.voice_listener_loop, daemon=True).start()
+            
+            # 2. Setup the "Stop Signal"
+            self.stop_voice_event = threading.Event()
+            
+            # 3. Create and start the thread
+            self.voice_thread = threading.Thread(
+                target=self.voice_listener_loop, 
+                args=(self.stop_voice_event,),
+                daemon=True
+            )
+            self.voice_thread.start()
         else:
+            # 1. UI Update
             self.voice_btn.configure(fg_color="#73737C")
+            
+            # 2. Tell the thread to die
+            if hasattr(self, 'stop_voice_event'):
+                self.stop_voice_event.set()
+            
+            # 3. Optional: Clear the thread reference
+            self.voice_thread = None
 
-    def voice_listener_loop(self):
-        # This runs in the background
-        if self.vr.recognizer():
-            # Use .after() to safely talk back to the UI thread
-            self.after(0, self.toggle_timer)
-            if self.vr.recognizer(word="stop"):
-                self.after(0,self.toggle_timer)
-                if self.vr.recognizer(word="reset"):
-                    self.after(0,self.reset_timer)
+    def voice_listener_loop(self, stop_event):
+        """This runs in the background"""
+        while not stop_event.is_set():
+            # Check for voice commands
+            # Note: Your recognizer should ideally have a timeout so it doesn't 
+            # block this loop forever, allowing it to check stop_event.is_set()
+
+            if self.is_running:
+                result = self.vr.recognizer(word="stop")
+            else:
+                result = self.vr.recognizer(word="start") 
+            
+            # Immediate check after a potentially long-running recognition task
+            if stop_event.is_set():
+                break
+
+            if result:
+                self.after(0, self.toggle_timer)
+                
+            # Example of specific word checks
+            # We check is_set() frequently to ensure the mic stops immediately
+            if not stop_event.is_set() and self.is_running:
+                self.vr.recognizer(word="stop") 
+                self.after(0, self.toggle_timer)
+                
+            if not stop_event.is_set() and not self.is_running :
+                self.vr.recognizer(word="reset")
+                self.after(0, self.reset_timer)
+
+        print("Voice listener thread safely stopped.")
+                
                 
 
             
