@@ -9,3 +9,4 @@ It can be used during doing Yoga, you don't need to manually start your timer an
 * started the project, its just a timer now. working manually. [04/05/2026]
 * added the voice-engine, and updated the UI accordingly. [08/05/2026]
 * added threading and fixed the voice control loop. [09/05/2026]
+* complete New version with production ready efficiency. [10/05/2026]
