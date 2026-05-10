@@ -3,6 +3,8 @@ import threading
 import time
 from datetime import datetime
 from voice_engine import voice_engine as VoiceEngine
+import sys
+import os
 
 # ── optional window icon ────────────────────────────────────────────────────
 try:
@@ -48,10 +50,11 @@ class TimerApp(ctk.CTk):
         self.title("Timer")
         self.geometry("350x580")
         self.resizable(False, False)
+        self.image_path = self.resource_path(relative_path="assets/clock_icon.ico")
 
         if _PIL_OK:
             try:
-                self.iconbitmap("clock_icon.ico")
+                self.iconbitmap(self.image_path)
             except Exception:
                 pass
 
@@ -272,6 +275,10 @@ class TimerApp(ctk.CTk):
         )
 
     # ── voice ─────────────────────────────────────────────────────────────────
+
+    def resource_path(self,relative_path):
+        base_path = getattr(sys, '_MEIPASS',os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path,relative_path)
     def _voice_toggle(self):
         self.voice_on = not self.voice_on
 
