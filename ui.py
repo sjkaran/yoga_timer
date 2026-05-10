@@ -3,6 +3,7 @@ from tkinter import font
 import threading
 import time
 from voice_engine import voice_engine as ve
+from PIL import Image
 
 class TimerApp(ctk.CTk):
     def __init__(self):
@@ -11,14 +12,20 @@ class TimerApp(ctk.CTk):
         #imported functions
         self.vr = ve()
         
-        # Configure dark theme
+        # Configure dark theme and setting Icon
+        logo_image = Image.open("clock_icon.ico")
+        my_icon = ctk.CTkImage(light_image=logo_image,dark_image=logo_image,size=(20,30))
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
+
+        #defining fonts
+        my_clock_font = ctk.CTkFont(family="Times", size=50, weight="bold")
         
         # Window setup
         self.title("Timer")
         self.geometry("350x300")
         self.resizable(False, False)
+        self.iconbitmap("clock_icon.ico")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         
@@ -31,28 +38,28 @@ class TimerApp(ctk.CTk):
         self.voice_enabled = False
         
         # Main container
-        main_frame = ctk.CTkFrame(self, fg_color="#1a1a1a")
+        main_frame = ctk.CTkFrame(self, fg_color="#000000")
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Title
         title_label = ctk.CTkLabel(
             main_frame,
             text="Timer",
-            font=ctk.CTkFont(family="Helvetica", size=18, weight="bold"),
+            font=ctk.CTkFont(family="Times new roman", size=18, weight="bold"),
             text_color="#ffffff"
         )
-        title_label.pack(pady=(0, 10))
+        title_label.pack(pady=(10, 10))
         
         # Display frame for timer
-        display_frame = ctk.CTkFrame(main_frame, fg_color="#2d2d2d", corner_radius=15)
+        display_frame = ctk.CTkFrame(main_frame, fg_color="#0C2819", corner_radius=0)
         display_frame.pack(fill="both", expand=True, pady=8)
         
         # Timer display label with large font
         self.time_display = ctk.CTkLabel(
             display_frame,
             text="00:00:00.00",
-            font=ctk.CTkFont(family="Roman", size=48, weight="bold"),
-            text_color="#00d4ff"
+            font=my_clock_font,
+            text_color="#ff9706"
         )
         self.time_display.pack(expand=True, fill="both", padx=10, pady=15)
         
@@ -66,12 +73,12 @@ class TimerApp(ctk.CTk):
             text="Start",
             font=ctk.CTkFont(size=12, weight="bold"),
             height=35,
-            fg_color="#00d4ff",
-            hover_color="#00a8cc",
+            fg_color="#ade372",
+            hover_color="#18cc00",
             text_color="#000000",
             command= self.toggle_timer
         )
-        self.start_stop_btn.pack(side="left", expand=True, padx=(0, 5))
+        self.start_stop_btn.pack(side="left", expand=True, padx=(5, 5))
         
         # Voice button
         self.voice_btn = ctk.CTkButton(
