@@ -28,6 +28,18 @@ import time
 import sounddevice as sd
 from vosk import KaldiRecognizer, Model
 
+# At the top of voice_engine.py
+import sys, os
+
+def _resource_path(relative_path):
+    base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, relative_path)
+
+class voice_engine:
+    def __init__(self, model_path: str = "model/vosk-model-small-en-in-0.4"):
+        model_path = _resource_path(model_path)  # ← add this line
+        self.model = Model(model_path)
+
 try:
     import pythoncom
     import win32com.client

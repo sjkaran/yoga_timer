@@ -1,1 +1,12 @@
-pyinstaller --onefile --add-data "assets;assets" --name "timerY" --icon="assets/clock_icon.ico" ui.py
+pyinstaller --onedir ^
+  --add-data "assets;assets" ^
+  --add-data "model;model" ^
+  --hidden-import="vosk" ^
+  --hidden-import="sounddevice" ^
+  --hidden-import="cffi" ^
+  --hidden-import="win32com.client" ^
+  --hidden-import="pythoncom" ^
+  --name "timerY" ^
+  --icon="assets/clock_icon.ico" ^
+  --noconsole ^
+  ui.py
