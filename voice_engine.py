@@ -1,44 +1,12 @@
-"""
-voice_engine.py  —  latency-optimised Vosk wrapper
-====================================================
-
-Speed techniques used:
-  1. GRAMMAR mode  — KaldiRecognizer is given an exact JSON list of phrases.
-     It only matches those words, skipping full-vocab decoding entirely.
-     Result: ~5x faster per chunk vs open-vocab.
-
-  2. Tiny blocksize (800 samples @ 16 kHz = 50 ms chunks).
-     Vosk is called 20x per second instead of 4x.
-     Partial results arrive in < 100 ms of speech.
-
-  3. Persistent audio stream — opened once at construction, never closed.
-     Zero stream-start latency between listen() calls.
-
-  4. Partial-result fast path — checked on EVERY chunk, not just when
-     AcceptWaveform returns True.  Fires mid-word, before utterance ends.
-
-  5. Tight queue poll (5 ms timeout) — near-zero idle wait between chunks.
-"""
-
 import json
 import queue
 import threading
 import time
+import sys
+import os
 
 import sounddevice as sd
 from vosk import KaldiRecognizer, Model
-
-# At the top of voice_engine.py
-import sys, os
-
-def _resource_path(relative_path):
-    base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base, relative_path)
-
-class voice_engine:
-    def __init__(self, model_path: str = "model/vosk-model-small-en-in-0.4"):
-        model_path = _resource_path(model_path)  # ← add this line
-        self.model = Model(model_path)
 
 try:
     import pythoncom
@@ -48,13 +16,19 @@ except ImportError:
     _TTS_AVAILABLE = False
 
 
+def _resource_path(relative_path):
+    base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, relative_path)
+
+
 class voice_engine:
 
     SAMPLERATE = 16000
-    BLOCKSIZE  = 800       # 50 ms — smaller = faster partial results
+    BLOCKSIZE  = 800
 
     def __init__(self, model_path: str = "model/vosk-model-small-en-in-0.4"):
         self._audio_q: queue.Queue = queue.Queue()
+        model_path = _resource_path(model_path)   # ← resolves correctly inside exe
         self.model = Model(model_path)
 
         # ── TTS (optional, Windows) ──────────────────────────────────────
