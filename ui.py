@@ -322,12 +322,15 @@ class TimerApp(ctk.CTk):
             # ── dispatch on main thread ───────────────────────────────────
             if word in ("stop", "pause"):
                 self.after(0, self.toggle_timer)
+                self._ve._speak_async("I have stoped")
 
             elif word in ("start", "begin", "go"):
                 self.after(0, self.toggle_timer)
+                self._ve._speak_async("Starting")
 
             elif word in ("reset", "clear"):
                 self.after(0, self.reset_timer)
+                self._ve._speak_async("Reset Successfully")
 
         print("[voice] thread stopped.")
 
